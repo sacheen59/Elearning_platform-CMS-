@@ -1,9 +1,12 @@
 """Models for course module"""
 
+from django.utils.text import slugify
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth.models import User
 from django.db import models
+from django.template.loader import render_to_string
+
 from .fields import OrderField
 
 class Subject(models.Model):
@@ -16,6 +19,21 @@ class Subject(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        """Ensure slug is never empty.
+
+        The `blank=False` on the field prevents most bad data, but it is
+        still possible to bypass model validation (e.g. via fixtures or
+        direct ORM calls) and end up with an empty string.  A missing slug
+        will break URL reversing in the templates, which is what triggered
+        the `NoReverseMatch` error reported by the user.  To guard against
+        that we auto-generate a slug from the title if one isn't provided.
+        """
+
+        if not self.slug:
+            self.slug = slugify(self.title) or ''
+        super().save(*args, **kwargs)
 
 class Course(models.Model):
     """Models for course."""
@@ -33,6 +51,11 @@ class Course(models.Model):
     slug = models.SlugField(max_length=200, unique=True)
     overview = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
+    students = models.ManyToManyField(
+        User,
+        related_name='courses_joined',
+        blank=True
+    )
 
 
     class Meta:
@@ -96,6 +119,13 @@ class ItemBase(models.Model):
 
     def __str__(self):
         return self.title
+
+    def render(self):
+        """Render the content item to HTML."""
+        return render_to_string(
+            f'courses/content/{self._meta.model_name}.html',
+            {'item': self}
+        )
 
 
 class Text(ItemBase):

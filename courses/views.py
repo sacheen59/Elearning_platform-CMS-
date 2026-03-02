@@ -1,6 +1,7 @@
 """Views for the course"""
 
 from django.db.models import Count
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateResponseMixin, View
 from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
@@ -21,6 +22,7 @@ from django.forms.models import modelform_factory
 
 from .models import Course,Module,Content,Subject
 from .forms import ModuleFormSet
+from students.forms import CourseEnrollForm
 
 class OwnerMixin:
     """Mixin that have function to query the given object is for authenticated user or not."""
@@ -191,9 +193,14 @@ class CourseListView(TemplateResponseMixin, View):
     template_name = 'courses/course/list.html'
 
     def get(self, request, subject=None):
-        subjects = Subject.objects.annotate(
-            total_courses=Count('courses')
-        )
+        # chache subjects
+        subjects = cache.get('all_subjects')
+        if not subjects:
+            subjects = Subject.objects.annotate(
+                total_courses=Count('courses')
+            )
+            cache.set('all_subjects', subjects)
+
         courses = Course.objects.annotate(
             total_modules=Count('modules')
         )
@@ -212,3 +219,10 @@ class CourseListView(TemplateResponseMixin, View):
 class CourseDetailView(DetailView):
     model = Course
     template_name = 'courses/course/detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['enroll_form'] = CourseEnrollForm(
+            initial={'course':self.object}
+        )
+        return context
