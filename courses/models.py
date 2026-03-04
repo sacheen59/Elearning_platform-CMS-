@@ -21,19 +21,10 @@ class Subject(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        """Ensure slug is never empty.
-
-        The `blank=False` on the field prevents most bad data, but it is
-        still possible to bypass model validation (e.g. via fixtures or
-        direct ORM calls) and end up with an empty string.  A missing slug
-        will break URL reversing in the templates, which is what triggered
-        the `NoReverseMatch` error reported by the user.  To guard against
-        that we auto-generate a slug from the title if one isn't provided.
-        """
-
         if not self.slug:
             self.slug = slugify(self.title) or ''
         super().save(*args, **kwargs)
+        
 
 class Course(models.Model):
     """Models for course."""
