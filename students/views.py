@@ -21,7 +21,7 @@ class StudentRegistrationView(CreateView):
         cd = form.cleaned_data
         user = authenticate(
             username=cd['username'],
-            password=cd['password']
+            password=cd['password1']
         )
         login(self.request,user)
         return result
@@ -68,5 +68,5 @@ class StudentCourseDetailView(DetailView):
             context['module'] = course.modules.get(id=self.kwargs['module_id'])
         else:
             # get first module
-            context['module'] = course.modules.all()[0]
+            context['module'] = course.modules.first()
         return context
