@@ -23,12 +23,14 @@ Incremental==24.11.0
 msgpack==1.1.2
 packaging==26.0
 pillow==12.1.1
+psycopg2-binary==2.9.11
 py-ubjson==0.16.1
 pyasn1==0.6.2
 pyasn1_modules==0.4.2
 pycparser==3.0
 pymemcache==4.0.0
 pyOpenSSL==25.3.0
+python-decouple==3.8
 redis==7.2.1
 requests==2.32.5
 service-identity==24.2.0
@@ -38,4 +40,5 @@ txaio==25.12.2
 typing_extensions==4.15.0
 ujson==5.11.0
 urllib3==2.6.3
+uWSGI==2.0.31
 zope.interface==8.2
